@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedAssist AI - Smart Health Assistant</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* Reset */
+    * { margin:0; padding:0; box-sizing:border-box; font-family: 'Roboto', sans-serif; }
+
+    body { background: #f8f9fa; color: #222; line-height: 1.6; }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* Header */
+    header { background: #cc0033; color: #fff; padding: 20px 0; text-align: center; position: sticky; top:0; z-index: 1000; }
+    header h1 { font-size: 2.4rem; }
+    nav ul { list-style: none; display: flex; justify-content: center; gap: 30px; margin-top: 10px; }
+    nav ul li a { color:#fff; font-weight:500; transition:0.3s; }
+    nav ul li a:hover { color: #ffd700; }
+
+    /* Hero */
+    .hero { background: linear-gradient(135deg,#ff4b6e,#cc0033); color:#fff; text-align: center; padding: 100px 20px; }
+    .hero h2 { font-size: 2.5rem; margin-bottom: 15px; }
+    .hero p { font-size: 1.2rem; margin-bottom: 25px; }
+    .btn-primary { background:#fff; color:#cc0033; padding:14px 28px; border-radius:8px; font-weight:500; box-shadow:0 6px 16px rgba(0,0,0,0.18); transition:.2s; }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow:0 10px 24px rgba(0,0,0,0.22); }
+
+    /* Features */
+    section { padding: 70px 20px; max-width: 1200px; margin:auto; }
+    h2.section-title { text-align:center; font-size:2rem; margin-bottom:40px; color:#cc0033; }
+    .features-container { display: flex; flex-wrap: wrap; gap:20px; justify-content:center; }
+    .feature { background:#fff; border-radius:16px; padding:28px; flex:1 1 250px; box-shadow:0 6px 20px rgba(0,0,0,0.08); text-align:center; transition: transform .28s; }
+    .feature:hover { transform: translateY(-8px); }
+    .feature i { font-size:2.5rem; color:#cc0033; margin-bottom:15px; display:block; }
+    .feature h3 { margin-bottom:12px; font-size:1.2rem; color:#333; }
+    .feature p { font-size:1rem; color:#555; }
+
+    /* Steps / How it works */
+    .steps-container { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; }
+    .step { flex:1 1 220px; background:#fff; border-radius:16px; padding:24px; text-align:center; box-shadow:0 6px 18px rgba(0,0,0,0.08); transition: transform .28s; }
+    .step:hover { transform: translateY(-6px); }
+    .step h3 { margin-bottom:10px; color:#cc0033; }
+    .step p { color:#555; }
+
+    /* Testimonials */
+    .testimonials-container { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; }
+    .testimonial { background:#fff; padding:26px; border-radius:16px; flex:1 1 280px; text-align:center; box-shadow:0 6px 18px rgba(0,0,0,0.08); font-style:italic; }
+    .testimonial h4 { margin-top:15px; font-weight:700; color:#cc0033; font-style:normal; }
+
+    /* FAQ */
+    .faq-container { max-width:800px; margin:auto; }
+    .faq-item { background:#fff; padding:20px 24px; border-radius:16px; margin-bottom:15px; box-shadow:0 6px 18px rgba(0,0,0,0.08); }
+    .faq-item h4 { color:#cc0033; margin-bottom:8px; }
+    .faq-item p { color:#555; }
+
+    /* Footer */
+    footer { background:#111; color:#f3f3f3; text-align:center; padding:20px 0; margin-top:40px; font-size:0.9rem; }
+    footer .socials { margin-top:10px; }
+    footer .socials a { color:#f3f3f3; margin:0 8px; transition:.3s; }
+    footer .socials a:hover { color:#ffd700; }
+
+    /* Floating chat button */
+    #floating-chat { position:fixed; right:18px; bottom:22px; z-index:9999; width:64px; height:64px; border-radius:50%; background: linear-gradient(135deg,#ff4b6e,#cc0033); display:flex; align-items:center; justify-content:center; box-shadow:0 12px 30px rgba(0,0,0,0.25); cursor:pointer; color:#fff; font-size:28px; transition: transform .12s ease, box-shadow .12s ease; }
+    #floating-chat:hover { transform: translateY(-6px); box-shadow:0 18px 36px rgba(0,0,0,0.28); }
+
+    /* Responsive */
+    @media(max-width:768px){
+      nav ul { flex-direction:column; gap:12px; }
+      .features-container, .steps-container, .testimonials-container { flex-direction:column; padding:0 12px; }
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <h1>MedAssist AI</h1>
+    <nav>
+      <ul>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#testimonials">Testimonials</a></li>
+        <li><a href="#faq">FAQ</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <h2>Your AI-Powered Health Assistant</h2>
+    <p>Check symptoms, book appointments, and get instant guidance!</p>
+    <a href="#floating-chat" class="btn-primary">Chat with MedAssist AI</a>
+  </section>
+
+  <!-- Features -->
+  <section id="features">
+    <h2 class="section-title">Features</h2>
+    <div class="features-container">
+      <div class="feature"><i class="fas fa-stethoscope"></i><h3>Symptom Checker</h3><p>AI-based instant symptom analysis to guide you to the right doctor.</p></div>
+      <div class="feature"><i class="fas fa-calendar-check"></i><h3>Appointment Booking</h3><p>Book appointments instantly with AI suggestions and available slots.</p></div>
+      <div class="feature"><i class="fas fa-lock"></i><h3>Secure OTP</h3><p>SMS-based OTP verification ensures privacy for all your interactions.</p></div>
+      <div class="feature"><i class="fas fa-comments"></i><h3>Real-time Chat</h3><p>Talk to MedAssist AI instantly via Zoho SalesIQ chat widget.</p></div>
+      <div class="feature"><i class="fas fa-map-marker-alt"></i><h3>Clinic Info & Map</h3><p>Access clinic location, contact numbers, and map links quickly.</p></div>
+      <div class="feature"><i class="fas fa-user-md"></i><h3>Doctor Availability</h3><p>Check available slots of doctors and schedule appointments seamlessly.</p></div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section id="how-it-works">
+    <h2 class="section-title">How It Works</h2>
+    <div class="steps-container">
+      <div class="step"><h3>1. Enter Symptoms</h3><p>Type your symptoms in the AI chat widget.</p></div>
+      <div class="step"><h3>2. Get Analysis</h3><p>Receive AI-based instant guidance on which doctor to consult.</p></div>
+      <div class="step"><h3>3. Book Appointment</h3><p>Check doctor availability and schedule your visit.</p></div>
+      <div class="step"><h3>4. Follow Up</h3><p>Track your health progress securely through MedAssist.</p></div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section id="testimonials">
+    <h2 class="section-title">Testimonials</h2>
+    <div class="testimonials-container">
+      <div class="testimonial"><p>"MedAssist AI helped me understand my symptoms and book the right doctor instantly!"</p><h4>- Priya S.</h4></div>
+      <div class="testimonial"><p>"The AI chat is amazing. Quick, accurate, and very easy to use."</p><h4>- Ramesh K.</h4></div>
+      <div class="testimonial"><p>"Secure OTP and instant booking make this app very reliable for health guidance."</p><h4>- Anjali M.</h4></div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <h2 class="section-title">Frequently Asked Questions</h2>
+    <div class="faq-container">
+      <div class="faq-item"><h4>Is MedAssist AI free?</h4><p>Yes, chat with AI and check symptoms without any cost.</p></div>
+      <div class="faq-item"><h4>Is my data safe?</h4><p>All requests are secured with OTP verification and encrypted storage.</p></div>
+      <div class="faq-item"><h4>Can I book multiple doctors?</h4><p>Yes, AI guides you to schedule multiple appointments if needed.</p></div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 MedAssist AI. All Rights Reserved. | Designed for Zoho Cliqtrix Competition</p>
+    <div class="socials">
+      <a href="#" target="_blank"><i class="fab fa-facebook"></i></a>
+      <a href="#" target="_blank"><i class="fab fa-twitter"></i></a>
+      <a href="#" target="_blank"><i class="fab fa-instagram"></i></a>
+    </div>
+  </footer>
+
+  <!-- Floating Chat Button -->
+  <div id="floating-chat"><i class="fas fa-comment"></i></div>
+
+  <!-- Zoho SalesIQ Widget -->
+  <script type='text/javascript'>
+    var $zoho=$zoho || {};
+    $zoho.salesiq = $zoho.salesiq || {
+        widgetcode:"YOUR_REAL_WIDGET_CODE",
+        values:{},
+        ready:function(){}
+    };
+    var d=document;
+    s=d.createElement('script');
+    s.type='text/javascript';
+    s.defer=true;
+    s.src='https://salesiq.zoho.com/widget';
+    t=d.getElementsByTagName('script')[0];
+    t.parentNode.insertBefore(s,t);
+  </script>
+
+  <script>
+    // Floating chat button
+    document.addEventListener("DOMContentLoaded", () => {
+      const chatBtn = document.querySelector("#floating-chat");
+      if(chatBtn){ chatBtn.addEventListener("click", () => {
+        alert("MedAssist AI Chat is opening!"); 
+      }); }
+    });
+  </script>
+
+</body>
+</html>
