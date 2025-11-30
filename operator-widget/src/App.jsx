@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ThemeProvider, useTheme } from "./themeContext.jsx";
 import { getVisitorContext, addNote, cancelBooking, rescheduleBooking, resendConfirmation } from "./serviceApi.js";
 import ProfileCard from "./components/ProfileCard.jsx";
-import SymptomsCard from "./components/Symptoms.jsx";
+import SymptomsCard from "./components/SymptomsCard.jsx";
 import BookingCard from "./components/BookingCard.jsx";
 import ReportsCard from "./components/ReportsCard.jsx";
 import NotesCard from "./components/NotesCard.jsx";
@@ -14,12 +14,16 @@ function Sidebar({ active, setActive, theme, setTheme }) {
       <div className="logo">MedAssist OP</div>
       <div className="nav">
         {items.map(it => (
-          <button key={it} className={active===it?"active":""} onClick={()=>setActive(it)}>{it.toUpperCase()}</button>
+          <button key={it} className={active===it?"active":""} onClick={()=>setActive(it)}>
+            {it.toUpperCase()}
+          </button>
         ))}
       </div>
       <div style={{flex:1}}/>
       <div style={{display:"flex",gap:8}}>
-        <button onClick={()=>setTheme(theme==="dark"?"light":"dark")}>{theme==="dark"?"Light":"Dark"}</button>
+        <button onClick={()=>setTheme(theme==="dark"?"light":"dark")}>
+          {theme==="dark"?"Light":"Dark"}
+        </button>
       </div>
     </div>
   );
@@ -28,22 +32,26 @@ function Sidebar({ active, setActive, theme, setTheme }) {
 function AppInner(){
   const { theme, setTheme } = useTheme();
   const [active, setActive] = useState("profile");
-  const [visitor, setVisitor] = useState(null);
+  const [visitorData, setVisitorData] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(()=>{
-    // widget can receive email from SalesIQ via URL param or postMessage
+    // get phone from URL param
     const params = new URLSearchParams(window.location.search);
-    const email = params.get("email");
-    if (email) loadVisitor(email);
+    const phone = params.get("phone");
+    if (phone) loadVisitor(phone);
 
+    // listen for postMessage updates from SalesIQ
     window.addEventListener("message", (e)=>{
       const d = e.data||{};
-      if (d.type === "visitor_info" && d.email) loadVisitor(d.email);
+      if (d.type === "visitor_info" && d.phone) loadVisitor(d.phone);
     });
-    // salesiq widget listener
+
+    // SalesIQ widget listener
     if (window.$zoho && window.$zoho.salesiq && window.$zoho.salesiq.widget) {
-      try { window.$zoho.salesiq.widget.on("visitorinfo", v => { if (v?.email) loadVisitor(v.email); }); } catch {}
+      try { 
+        window.$zoho.salesiq.widget.on("visitorinfo", v => { if (v?.phone) loadVisitor(v.phone); }); 
+      } catch {}
     }
 
     // apply theme CSS
@@ -60,12 +68,15 @@ function AppInner(){
     }
   }, [theme]);
 
-  async function loadVisitor(email){
+  async function loadVisitor(phone){
     setLoading(true);
     try {
-      const data = await getVisitorContext(email);
-      setVisitor(data);
-    } catch(err){ console.error(err); }
+      const data = await getVisitorContext(phone); // pass phone now
+      setVisitorData(data); // full object: { visitor, upcomingBookings, notes }
+    } catch(err){ 
+      console.error(err);
+      alert("Visitor not found with this phone number");
+    }
     setLoading(false);
   }
 
@@ -91,21 +102,36 @@ function AppInner(){
         <div className="header">
           <div>Operator Console</div>
           <div style={{display:"flex",gap:8}}>
-            <div style={{fontSize:12,opacity:0.8}}>{visitor?.visitorName || "No visitor loaded"}</div>
-            <button className="small-btn" onClick={()=>window.parent.postMessage({type:"open_chat", email: visitor?.visitorEmail}, "*")}>Open Chat</button>
+            <div style={{fontSize:12,opacity:0.8}}>
+              {visitorData?.visitor?.name || "No visitor loaded"}
+            </div>
+            <button className="small-btn" 
+              onClick={()=>window.parent.postMessage({type:"open_chat", phone: visitorData?.visitor?.phone}, "*")}>
+              Open Chat
+            </button>
           </div>
         </div>
 
         {loading && <div className="card">Loading...</div>}
-        {!loading && !visitor && <div className="card">No visitor. Click a conversation or load by email param.</div>}
+        {!loading && !visitorData && <div className="card">No visitor. Click a conversation or load by phone param.</div>}
 
-        {!loading && visitor && (
+        {!loading && visitorData && (
           <>
-            {active==="profile" && <ProfileCard visitor={visitor} />}
-            {active==="symptoms" && <SymptomsCard visitor={visitor} onAIAnalyze={() => {/* handled inside */}} />}
-            {active==="booking" && <BookingCard visitor={visitor} onCancel={onCancel} onReschedule={onReschedule} onResend={onResend} />}
-            {active==="reports" && <ReportsCard visitor={visitor} />}
-            {active==="notes" && <NotesCard visitor={visitor} onNoteAdded={(note)=>{ /* reload notes locally if needed */ }} />}
+            {active==="profile" && <ProfileCard visitor={visitorData.visitor} />}
+            {active==="symptoms" && <SymptomsCard visitor={visitorData.visitor} onAIAnalyze={() => {/* handled inside */}} />}
+            {active==="booking" && <BookingCard 
+              visitor={visitorData.visitor} 
+              bookings={visitorData.upcomingBookings} 
+              onCancel={onCancel} 
+              onReschedule={onReschedule} 
+              onResend={onResend} 
+            />}
+            {active==="reports" && <ReportsCard visitor={visitorData.visitor} />}
+            {active==="notes" && <NotesCard 
+              visitor={visitorData.visitor} 
+              notes={visitorData.notes} 
+              onNoteAdded={(note)=>{/* reload notes locally if needed */}} 
+            />}
           </>
         )}
       </div>

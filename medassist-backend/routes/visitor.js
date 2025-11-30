@@ -80,4 +80,36 @@ router.post("/:id/notes", async (req, res) => {
   }
 });
 
+/**
+ * GET /api/visitors/phone/:phone
+ * Fetch visitor by phone number
+ */
+router.get("/phone/:phone", async (req, res) => {
+  const phone = req.params.phone.trim();
+  try {
+    const v = await pool.query("SELECT * FROM visitors WHERE phone=$1", [phone]);
+    if (!v.rows.length) return res.status(404).json({ error: "visitor not found" });
+
+    const visitor = v.rows[0];
+    const bookings = await pool.query(
+      "SELECT * FROM bookings WHERE visitor_id=$1 ORDER BY created_at DESC",
+      [visitor.id]
+    );
+    const notes = await pool.query(
+      "SELECT * FROM notes WHERE visitor_id=$1 ORDER BY created_at DESC",
+      [visitor.id]
+    );
+
+    res.json({
+      success: true,
+      visitor,
+      upcomingBookings: bookings.rows,
+      notes: notes.rows
+    });
+  } catch (err) {
+    console.error("Get Visitor by phone error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;
