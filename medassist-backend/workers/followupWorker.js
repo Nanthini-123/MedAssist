@@ -1,56 +1,45 @@
-// workers/followupWorker.js
-import { pool } from "../db.js";
-import { sendSmsPlain } from "../helpers/sms.js";
+// workers/followup.js
+import pool from "../db.js";
+import { sendSms } from "../utils/sms.js";
+import { sendBookingEmail } from "../utils/email.js";
 
 export async function runFollowupWorker() {
   try {
-    console.log("Follow-up worker running...");
+    console.log("[followup] running");
 
-    // 1. Define time window: yesterday 00:00 → yesterday 23:59
-    const now = new Date();
-    const yesterdayStart = new Date(now);
-    yesterdayStart.setDate(now.getDate() - 1);
-    yesterdayStart.setHours(0, 0, 0, 0);
+    const q = `
+      SELECT b.*, v.phone, v.email, v.name
+      FROM bookings b
+      JOIN visitors v ON v.id = b.visitor_id
+      WHERE b.attendance_status = 'MISSED'
+        AND b.followup_sent = false
+    `;
+    const r = await pool.query(q);
 
-    const yesterdayEnd = new Date(now);
-    yesterdayEnd.setDate(now.getDate() - 1);
-    yesterdayEnd.setHours(23, 59, 59, 999);
+    for (const row of r.rows) {
+      const phone = row.phone;
+      const email = row.email;
+      const doctorName = row.doctor_name || row.doctor_id;
 
-    // 2. FETCH missed OR null attendance
-    const result = await pool.query(
-      `SELECT *
-       FROM bookings
-       WHERE attendance_status != 'ATTENDED'
-       AND attendance_status != 'CANCELLED'
-       AND timeslot BETWEEN $1 AND $2`,
-      [yesterdayStart.toISOString(), yesterdayEnd.toISOString()]
-    );
+      const sms = `We noticed you missed your appointment with ${doctorName}. Reply YES to reschedule or call reception.`;
+      if (phone) {
+        try { await sendSms({ phone, message: sms }); } catch (e) { console.error("[followup] sms err", e?.message || e); }
+      }
 
-    const bookings = result.rows;
+      if (email) {
+        try {
+          await sendBookingEmail({
+            to: email,
+            subject: `Missed appointment follow-up`,
+            text: `We noticed you missed your appointment with ${doctorName}. Reply YES to reschedule.`,
+          });
+        } catch (e) { console.error("[followup] email err", e?.message || e); }
+      }
 
-    console.log("Found:", bookings.length, "bookings");
-
-    // 3. For each booking → send follow-up SMS
-    for (const b of bookings) {
-      const phone = b.visitor_phone;
-
-      if (!phone) continue;
-
-      const msg = `Hi ${b.visitor_name}, we noticed you couldn't attend your appointment yesterday.\nTap to reschedule: https://yourclinic.com/reschedule/${b.id}`;
-
-      await sendSmsPlain({ phone, message: msg });
-
-      console.log("Sent follow-up to:", phone);
-
-      // log
-      await pool.query(
-        "INSERT INTO notifications_log(booking_id,type,to_contact,payload,created_at) VALUES($1,$2,$3,$4,NOW())",
-        [b.id, "followup", phone, JSON.stringify({ missed: true })]
-      );
+      await pool.query(`UPDATE bookings SET followup_sent = true WHERE id = $1`, [row.id]);
     }
 
-    console.log("Follow-up worker finished.");
   } catch (err) {
-    console.error("FOLLOWUP WORKER ERROR:", err.message);
+    console.error("[followup] failed:", err);
   }
 }

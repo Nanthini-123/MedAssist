@@ -1,35 +1,34 @@
-import db from "../db.js";
-import sendEmail from "../utils/sendEmail.js";
+// workers/monthlyReport.js
+import pool from "../db.js";
+import { sendBookingEmail } from "../utils/email.js";
 
 export async function runMonthlyReport() {
   try {
-    const bookings = await db.manyOrNone(`
-      SELECT * FROM bookings
-      WHERE date_trunc('month', appointment_datetime) = date_trunc('month', CURRENT_DATE)
-    `);
+    console.log("[monthly] running");
 
-    const total = bookings.length;
+    const q = `
+      SELECT
+        COUNT(*) FILTER (WHERE date_trunc('month', created_at) = date_trunc('month', now())) AS total_bookings,
+        COUNT(*) FILTER (WHERE attendance_status='MISSED' AND date_trunc('month', updated_at) = date_trunc('month', now())) AS total_missed
+      FROM bookings
+    `;
+    const r = await pool.query(q);
+    const stats = r.rows[0];
 
-    const bySpeciality = {};
-    bookings.forEach(b => {
-      if (!bySpeciality[b.speciality]) bySpeciality[b.speciality] = 0;
-      bySpeciality[b.speciality]++;
-    });
+    const html = `<p>Monthly report</p>
+      <ul>
+        <li>Total bookings this month: ${stats.total_bookings || 0}</li>
+        <li>Total missed this month: ${stats.total_missed || 0}</li>
+      </ul>`;
 
-    let report = `Monthly Summary Report\n\nTotal Bookings: ${total}\n\nBreakdown:\n`;
-
-    for (const sp in bySpeciality) {
-      report += `${sp}: ${bySpeciality[sp]}\n`;
+    const admins = (process.env.MONTHLY_REPORT_TO || "").split(",").map(s=>s.trim()).filter(Boolean);
+    for (const admin of admins) {
+      try {
+        await sendBookingEmail({ to: admin, subject: "Monthly report", html });
+      } catch(e){ console.error("[monthly] err", e?.message || e); }
     }
 
-    await sendEmail({
-      to: process.env.ADMIN_EMAIL,
-      subject: "MedAssist Monthly Summary",
-      text: report
-    });
-
-    console.log("Monthly summary sent");
-  } catch (error) {
-    console.log("Monthly report error:", error.message);
+  } catch (err) {
+    console.error("[monthly] failed:", err);
   }
 }

@@ -1,103 +1,122 @@
+// =========================
+//       BASIC SETUP
+// =========================
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
 
-// ROUTES
+import cron from "node-cron";
+
+const app = express();
+app.use(cors());
+app.use(express.json({ limit: "20mb" }));
+
+
+// =========================
+//        ROUTES
+// =========================
 import otpRoutes from "./routes/otp.js";
 import analyzeRoutes from "./routes/analyze.js";
 import availabilityRoutes from "./routes/availability.js";
 import bookingRoutes from "./routes/booking.js";
 import visitorRoutes from "./routes/visitor.js";
+
 import operatorRoutes from "./routes/operator.js";
-import adminRoutes from "./routes/admin.js";
-import uploadRoutes from "./routes/upload.js";
 import operatorLeadsRoutes from "./routes/operator_leads.js";
 import templatesRoutes from "./routes/templates.js";
+
+import adminRoutes from "./routes/admin.js";
+import uploadRoutes from "./routes/upload.js";
 import clinicRoutes from "./routes/clinic.js";
-import { startReminderWorker } from "./workers/reminderworker.js";
+
 import attendanceRoutes from "./routes/attendance.js";
+import bookingsTodayRoutes from "./routes/bookings_today.js";
+
+import statusRoutes from "./routes/status.js";
+import botRoutes from "./routes/bot.js";
+import testRoutes from "./routes/test.js";
+import aiRoutes from "./routes/ai.js"; // make sure path is correct
+
+
+
+// =========================
+//      WORKERS IMPORTS
+// =========================
+import { runReminderWorker } from "./workers/reminderworker.js";
+import { runMissedWorker } from "./workers/missedWorker.js";
+import { runFollowupWorker } from "./workers/followupWorker.js";
+import { runDailySummary } from "./workers/dailySummary.js";
+import { runMonthlyReport } from "./workers/monthlyReport.js";
+
 import { runNoShowFollowup } from "./cron/noShowFollowup.js";
-import cron from "node-cron";
-import { runNoShowFollowup } from "./cron/followup.js";
 import { autoCancelNoShow } from "./cron/autocancel.js";
 import { sendDailySummary } from "./cron/dailySummary.js";
-import bookingRoutes from "./routes/bookings.js";
 
-startReminderWorker();
 
-const app = express();
 
-app.use(cors());
-app.use(express.json({ limit: "20mb" }));
-
-// ROUTES MOUNTED
+// =========================
+//      MOUNT ROUTES
+// =========================
 app.use("/api", otpRoutes);
 app.use("/api/analyze-symptoms", analyzeRoutes);
 app.use("/api/availability", availabilityRoutes);
-app.use("/api/book", bookingRoutes);
-app.use("/api/visitor-context", visitorRoutes);
-
-app.use("/api/operator", operatorRoutes);           // operator main actions
-app.use("/api/operator/leads", operatorLeadsRoutes); // operator create lead
-app.use("/api/operator/templates", templatesRoutes); // operator message templates
-app.use("/api/upload", uploadRoutes);  
-app.use("/api/admin", adminRoutes);                  // dashboards
-app.use("/api/app.use", clinicRoutes);
-app.use("/api/attendance", attendanceRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/visitors", visitorRoutes);
+
+app.use("/api/operator", operatorRoutes);
+app.use("/api/operator/leads", operatorLeadsRoutes);
+app.use("/api/operator/templates", templatesRoutes);
+
+app.use("/api/upload", uploadRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/clinic", clinicRoutes);
+
+app.use("/api/attendance", attendanceRoutes);
+app.use("/api/bookings-today", bookingsTodayRoutes);
+
+app.use("/status", statusRoutes);
+app.use("/api/bot", botRoutes);
+app.use("/api/test", testRoutes);
+app.use("/api/ai", aiRoutes);
 app.get("/", (req, res) => res.send("MedAssist backend running"));
 
-startReminderWorker();
 
-import { runReminderCheck } from "./workers/reminderworker.js";
+// =========================
+//     START WORKERS
+// =========================
 
-setInterval(() => {
-  runReminderCheck();
-}, 60000); // every 60 seconds
 
-import { runMissedCheck } from "./workers/missedWorker.js";
+// Run lightweight workers every minute
+setInterval(() => { runReminderWorker().catch(console.error); }, 60000);
+setInterval(() => { runMissedWorker().catch(console.error); }, 60000);
+setInterval(() => { runFollowupWorker().catch(console.error); }, 60000);
 
-setInterval(() => {
-  runMissedCheck();
-}, 60000);
-
-import { runMonthlyReport } from "./workers/monthlyReport.js";
-
-setInterval(() => {
-  const now = new Date();
-  if (now.getDate() === 1 && now.getHours() === 9) {
-    runMonthlyReport();
-  }
-}, 3600000); // check once per hour
-
-import cron from "node-cron";
-import { runFollowupWorker } from "./workers/followupWorker.js";
-
-// run every day at 7PM
-cron.schedule("0 19 * * *", () => {
-  runFollowupWorker();
-});
-
-setInterval(() => {
-  runNoShowFollowup();
-}, 1000 * 60 * 10); // runs every 10 minutes
-
-// every 10 minutes → send followups
+// No-show followups every 10 minutes
 cron.schedule("*/10 * * * *", () => {
-  runNoShowFollowup();
+  runNoShowFollowup().catch(console.error);
 });
 
-// daily at midnight → auto-cancel
+// Auto-cancel at midnight
 cron.schedule("0 0 * * *", () => {
-  autoCancelNoShow();
+  autoCancelNoShow().catch(console.error);
 });
 
-// every morning 7 AM
+// Daily summary at 7AM
 cron.schedule("0 7 * * *", () => {
-  sendDailySummary();
+  sendDailySummary().catch(console.error);
 });
 
-const PORT = process.env.PORT || 10000;
+// Monthly report on 1st at 7AM
+cron.schedule("0 7 1 * *", () => {
+  runMonthlyReport().catch(console.error);
+});
 
-app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+
+// =========================
+//      START SERVER
+// =========================
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () =>
+  console.log(`🔥 MedAssist backend running on PORT ${PORT}`)
+);

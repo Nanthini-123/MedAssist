@@ -1,46 +1,55 @@
-import db from "../db.js";
-import sendSMS from "../utils/sendSMS.js";
+// workers/missed.js
+import pool from "../db.js";
+import { sendSms } from "../utils/sms.js";
+import { sendBookingEmail } from "../utils/email.js";
 
-export async function runMissedCheck() {
+export async function runMissedWorker() {
   try {
-    const now = new Date();
+    console.log("[missed] running");
 
-    // appointments 20–25 minutes in the past
-    const start = new Date(now.getTime() - 25 * 60000);
-    const end = new Date(now.getTime() - 20 * 60000);
+    const q = `
+      SELECT b.*, v.phone, v.email
+      FROM bookings b
+      JOIN visitors v ON v.id = b.visitor_id
+      WHERE b.status = 'booked'
+        AND b.attendance_status = 'PENDING'
+        AND b.timeslot < NOW() - INTERVAL '15 minutes'
+    `;
+    const r = await pool.query(q);
 
-    const bookings = await db.manyOrNone(
-      `SELECT * FROM bookings
-       WHERE appointment_datetime BETWEEN $1 AND $2`,
-      [start, end]
-    );
+    for (const row of r.rows) {
+      const phone = row.phone;
+      const email = row.email;
+      const doctorName = row.doctor_name || row.doctor_id;
+      const timeslot = new Date(row.timeslot).toISOString().replace("T", " ").split(".")[0];
 
-    for (const b of bookings) {
-      const exists = await db.oneOrNone(
-        `SELECT id FROM notifications_log 
-        WHERE booking_id=$1 AND type='MISSED'`,
-        [b.id]
+      // mark missed in DB
+      await pool.query(
+        `UPDATE bookings SET status='missed', attendance_status='MISSED', updated_at=NOW() WHERE id = $1`,
+        [row.id]
       );
 
-      if (exists) continue;
+      // send missed message with CTA to reschedule
+      const sms = `You missed your appointment with ${doctorName} on ${timeslot}. Reply YES to reschedule or visit the clinic to reschedule.`;
+      if (phone) {
+        try { await sendSms({ phone, message: sms }); } catch (e) { console.error("[missed] sms err", e?.message || e); }
+      }
 
-      const msg = `
-Hi ${b.visitor_name}, 
-We noticed you missed your appointment. 
-Reply YES to reschedule or visit the chatbot to book again.
-      `;
+      if (email) {
+        try {
+          await sendBookingEmail({
+            to: email,
+            subject: `Missed appointment with ${doctorName}`,
+            text: `You missed your appointment on ${timeslot}. Reply YES to reschedule.`,
+          });
+        } catch (e) { console.error("[missed] email err", e?.message || e); }
+      }
 
-      await sendSMS(b.visitor_phone, msg);
-
-      await db.none(
-        `INSERT INTO notifications_log (booking_id, type)
-         VALUES ($1, 'MISSED')`,
-        [b.id]
-      );
-
-      console.log("Sent missed follow-up", b.id);
+      // mark followup_sent=false so followup worker will send follow-up
+      await pool.query(`UPDATE bookings SET followup_sent = false WHERE id = $1`, [row.id]);
     }
+
   } catch (err) {
-    console.log("Missed worker error:", err.message);
+    console.error("[missed] failed:", err);
   }
 }

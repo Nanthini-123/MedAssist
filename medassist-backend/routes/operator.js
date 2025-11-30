@@ -1,7 +1,7 @@
 import express from "express";
-import { pool } from "../db.js";
+import pool from "../db.js";
 import { sendBookingEmail } from "../helpers/email.js";
-import { sendSmsPlain } from "../helpers/sms.js";
+import { sendSms } from "../utils/sms.js";
 import { makeIcs } from "../helpers/utils.js";
 import axios from "axios"; // for optional sheet push
 import dotenv from "dotenv";
@@ -96,7 +96,7 @@ router.post("/cancel", async (req, res) => {
       bookingId
     });
 
-    await sendSmsPlain({ phone: booking.phone, message: `Your appointment ${bookingId} has been cancelled.` });
+    await sendSms({ phone: booking.phone, message: `Your appointment ${bookingId} has been cancelled.` });
 
     res.json({ success: true });
   } catch (err) {
@@ -132,7 +132,7 @@ router.post("/resend-confirmation", async (req, res) => {
       ics
     });
 
-    await sendSmsPlain({ phone: booking.phone, message: `Reminder: your appointment ${bookingId} is scheduled at ${startIso}` });
+    await sendSms({ phone: booking.phone, message: `Reminder: your appointment ${bookingId} is scheduled at ${startIso}` });
 
     res.json({ success: true });
   } catch (err) {
@@ -164,7 +164,7 @@ router.post("/reschedule", async (req, res) => {
       time: newTime,
       bookingId
     });
-    await sendSmsPlain({ phone: booking.phone, message: `Appointment ${bookingId} rescheduled to ${newDate} ${newTime}` });
+    await sendSms({ phone: booking.phone, message: `Appointment ${bookingId} rescheduled to ${newDate} ${newTime}` });
 
     res.json({ success: true });
   } catch (err) {

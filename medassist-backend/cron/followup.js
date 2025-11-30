@@ -1,4 +1,4 @@
-import pool from "../config/db.js";
+import pool from "../db.js";
 import sendSMS from "../utils/sms.js";
 
 export async function runNoShowFollowup() {

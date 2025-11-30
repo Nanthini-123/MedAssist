@@ -1,4 +1,4 @@
-import pool from "../config/db.js";
+import pool from "../db.js";
 import sendEmail from "../utils/email.js";
 
 export async function sendDailySummary() {

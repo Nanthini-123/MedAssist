@@ -1,5 +1,5 @@
-import pool from "../config/db.js";
-import sendSMS from "../utils/sms.js";
+import pool from "../db.js";
+import { sendSms, sendWhatsAppMessage } from "../utils/sms.js";
 
 export async function runNoShowFollowup() {
   const res = await pool.query(
@@ -13,7 +13,7 @@ export async function runNoShowFollowup() {
 
   for (let r of res.rows) {
     const msg = `Hi ${r.name}, you missed your appointment today. Click to reschedule: https://yourapp.com/reschedule/${r.id}`;
-    await sendSMS(r.phone, msg);
+    await sendSms({ phone: r.phone, message: msg }); // ✅ use named export
 
     await pool.query(
       `UPDATE bookings SET followup_sent = TRUE WHERE id = $1`,
