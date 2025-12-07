@@ -41,7 +41,8 @@ import statusRoutes from "./routes/status.js";
 import botRoutes from "./routes/bot.js";
 import testRoutes from "./routes/test.js";
 import aiRoutes from "./routes/ai.js"; // make sure path is correct
-
+import calendlyWebhook from "./routes/calendly/webhook.js";
+import bookingRoutes from "./routes/booking/get.js";
 
 
 // =========================
@@ -86,6 +87,9 @@ app.use("/api/bookings-today", bookingsTodayRoutes);
 app.use("/status", statusRoutes);
 app.use("/api/bot", botRoutes);
 app.use("/api/test", testRoutes);
+
+app.use("/api/calendly/webhook", calendlyWebhook);
+app.use("/api/booking", bookingRoutes);
 app.use("/api/ai", aiRoutes);
 app.get("/", (req, res) => res.send("MedAssist backend running"));
 
