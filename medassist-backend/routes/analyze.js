@@ -30,7 +30,7 @@ Return JSON with:
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "openai/gpt-4.1-mini",
+        model: "anthropic/claude-opus-4.5",
         messages: [
           { role: "system", content: "Return ONLY JSON. No extra text." },
           { role: "user", content: prompt }
