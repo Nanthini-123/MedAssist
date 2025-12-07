@@ -5,6 +5,21 @@ dotenv.config();
 
 const router = express.Router();
 
+// -----------------------------
+// TEST AI connectivity route
+// -----------------------------
+router.get("/test-ai", async (req, res) => {
+  try {
+    const r = await fetch("https://openrouter.ai/api/v1/models", {
+      headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}` }
+    });
+    const data = await r.json();
+    res.json({ success: true, data });
+  } catch (err) {
+    res.json({ success: false, error: err.message });
+  }
+});
+
 // Robust AI call function
 async function callAI(prompt, max_tokens = 500) {
   if (!process.env.OPENROUTER_API_KEY) {
