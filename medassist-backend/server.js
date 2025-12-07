@@ -22,6 +22,9 @@ import analyzeRoutes from "./routes/analyze.js";
 import availabilityRoutes from "./routes/availability.js";
 import bookingRoutes from "./routes/booking.js";
 import visitorRoutes from "./routes/visitor.js";
+import slotsRouter from "./routes/slots.js";
+import otpRouter from "./routes/otp.js";
+import calendlyRouter from "./routes/calendly.js";
 
 import operatorRoutes from "./routes/operator.js";
 import operatorLeadsRoutes from "./routes/operator_leads.js";
@@ -64,6 +67,10 @@ app.use("/api/ai", analyzeRoutes);
 app.use("/api/availability", availabilityRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/visitors", visitorRoutes);
+app.use("/api/slots", slotsRouter);
+app.use("/api/otp", otpRouter);
+app.use("/api/calendly", calendlyRouter);
+
 
 app.use("/api/operator", operatorRoutes);
 app.use("/api/operator/leads", operatorLeadsRoutes);
