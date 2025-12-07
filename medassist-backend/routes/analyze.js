@@ -2,7 +2,6 @@
 import express from "express";
 import fetch from "node-fetch";
 import dotenv from "dotenv";
-import pool from "../db.js"; // PostgreSQL / MySQL connection
 dotenv.config();
 
 const router = express.Router();
@@ -11,7 +10,8 @@ const router = express.Router();
 // Helper: Call OpenRouter AI (Claude)
 // -----------------------------
 async function callAI(prompt, max_tokens = 600) {
-  if (!process.env.OPENROUTER_API_KEY) throw new Error("OpenRouter API key not configured");
+  if (!process.env.OPENROUTER_API_KEY)
+    throw new Error("OpenRouter API key not configured");
 
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
@@ -33,33 +33,45 @@ async function callAI(prompt, max_tokens = 600) {
   try {
     return JSON.parse(clean);
   } catch (e) {
-    return { raw, error: "AI returned malformed JSON" };
+    // Fallback: return a clean default structure with raw for debugging
+    return {
+      raw,
+      error: "AI returned malformed JSON",
+      specialty: "General Physician",
+      severity: "MED",
+      red_flag: false,
+      possible_conditions: [],
+      follow_up_days: 7,
+      medication_advice: "Rest, hydration, OTC medications as needed.",
+      health_tips: "Maintain healthy diet, exercise regularly, and stay hydrated.",
+      insurance_clinics: [],
+      notes: ""
+    };
   }
 }
 
 // -----------------------------
 // POST /api/ai/analyze-symptoms
-// Comprehensive symptom analysis
+// Comprehensive symptom analysis without DB
 // -----------------------------
 router.post("/analyze-symptoms", async (req, res) => {
-  const { text, age = null, insurance = null } = req.body;
+  const { text, age = null } = req.body;
   if (!text) return res.status(400).json({ error: "text required" });
 
-  // AI prompt for multi-feature analysis
   const prompt = `
 Analyze the following symptoms: ${text}.
 User age: ${age || "unknown"}.
 Return ONLY JSON with the following structure:
 {
-  "specialty": "...",             // Suggested doctor
-  "severity": "LOW|MED|HIGH|CRITICAL", // Urgency
-  "red_flag": true|false,         // Critical symptoms present?
-  "possible_conditions": ["..."], // Multi-symptom differential
-  "follow_up_days": number,       // Suggested follow-up interval
-  "medication_advice": "...",     // Non-prescription advice
-  "health_tips": "...",           // Wellness tips
-  "insurance_clinics": ["..."],   // List of clinics if insurance provided
-  "notes": "..."                  // Additional info
+  "specialty": "...",
+  "severity": "LOW|MED|HIGH|CRITICAL",
+  "red_flag": true|false,
+  "possible_conditions": ["..."],
+  "follow_up_days": number,
+  "medication_advice": "...",
+  "health_tips": "...",
+  "insurance_clinics": ["..."],
+  "notes": "..."
 }
 Include:
 - Red flags (chest pain, shortness of breath, vision loss, severe headache)
@@ -70,29 +82,8 @@ Include:
 `;
 
   try {
-    let result = await callAI(prompt, 600);
-
-    // Insurance-based clinic suggestions
-    if (insurance) {
-      const clinicResult = await pool.query(
-        `SELECT clinic_name FROM insurance_clinics WHERE insurance_name = $1`,
-        [insurance]
-      );
-      result.insurance_clinics = clinicResult.rows.map(r => r.clinic_name);
-    }
-
-    // Fallback defaults if AI fails
-    result.specialty = result.specialty || "General Physician";
-    result.severity = result.severity || "MED";
-    result.red_flag = result.red_flag !== undefined ? result.red_flag : false;
-    result.possible_conditions = result.possible_conditions || [];
-    result.follow_up_days = result.follow_up_days || 7;
-    result.medication_advice = result.medication_advice || "Rest, hydration, OTC medications as needed.";
-    result.health_tips = result.health_tips || "Maintain healthy diet, exercise regularly, and stay hydrated.";
-    result.notes = result.notes || result.raw || "";
-
+    const result = await callAI(prompt, 600);
     return res.json(result);
-
   } catch (err) {
     console.error("AI analyze error:", err.message);
     return res.status(500).json({
@@ -104,7 +95,7 @@ Include:
 
 // -----------------------------
 // POST /api/ai/ask-ai
-// General AI Q&A
+// General AI Q&A without DB
 // -----------------------------
 router.post("/ask-ai", async (req, res) => {
   const { message } = req.body;
