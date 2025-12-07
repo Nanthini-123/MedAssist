@@ -1,18 +1,27 @@
 router.post("/analyze-symptoms", async (req, res) => {
   const { text, age = null } = req.body;
-  if (!text) return res.status(400).json({ error: "text required" });
 
+  // Validate input
+  if (!text) {
+    return res.status(400).json({ error: "text required" });
+  }
+
+  // STRICT JSON PROMPT
   const prompt = `
-Return ONLY valid JSON. No explanation, no markdown.
-Just pure JSON.
+Respond ONLY with valid JSON. 
+No markdown, no backticks, no explanations. 
+Do not include any extra text.
 
-Analyze symptoms: "${text}"
+Analyze the following symptoms:
+"${text}"
+
 Age: ${age}
 
-JSON format:
+Return JSON in EXACTLY this structure:
+
 {
   "specialty": "string",
-  "severity": "LOW|MED|HIGH|CRITICAL",
+  "severity": "LOW" | "MED" | "HIGH" | "CRITICAL",
   "follow_up_days": number,
   "medication_advice": "string",
   "health_tips": "string"
@@ -20,16 +29,25 @@ JSON format:
 `;
 
   try {
-    const ai = await callAI(prompt, 600);
+    // Call AI
+    const aiResponse = await callAI(prompt, 500);
 
+    // aiResponse should already be JSON because callAI parses JSON
     return res.json({
-      specialty: ai.specialty || "General Physician",
-      severity: ai.severity || "MED",
-      follow_up_days: ai.follow_up_days || 7,
-      medication_advice: ai.medication_advice || "",
-      health_tips: ai.health_tips || ""
+      specialty: aiResponse.specialty,
+      severity: aiResponse.severity,
+      follow_up_days: aiResponse.follow_up_days,
+      medication_advice: aiResponse.medication_advice,
+      health_tips: aiResponse.health_tips
     });
+
   } catch (err) {
-    return res.status(500).json({ error: "AI_JSON_ERROR" });
+    console.error("Analyze symptoms error:", err);
+
+    // Fallback in case AI breaks
+    return res.status(500).json({
+      error: "AI_JSON_ERROR",
+      message: "AI returned invalid JSON. Check AI output or prompt."
+    });
   }
 });
