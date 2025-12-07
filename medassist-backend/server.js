@@ -121,7 +121,7 @@ app.get("/api/test-db", async (req, res) => {
     const result = await pool.query("SELECT NOW()");
     res.json({ success: true, time: result.rows[0].now });
   } catch (err) {
-    console.error(err);
+    console.error("DB CONNECTION ERROR:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
