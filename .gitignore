@@ -1,0 +1,31 @@
+# Node modules
+node_modules/
+**/node_modules/
+
+# Env files
+.env
+**/.env
+
+# Build output
+dist/
+build/
+out/
+.next/
+.cache/
+*.zip
+
+# Backend build
+medassist-backend/dist/
+medassist-backend/.cache/
+
+# Frontend build
+medassist-frontend/dist/
+medassist-frontend/build/
+medassist-frontend/out/
+medassist-frontend/.next/
+
+# Logs
+*.log
+
+# System files
+.DS_Store

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MedAssist – AI Appointment & Intelligent Triage System</title>
+
+  <style>
+    :root{
+      --primary: #6a1b9a;
+      --muted: #6b6b6b;
+      --bg: #f8f9fc;
+      --card: #ffffff;
+      --radius: 12px;
+      --shadow: 0 6px 20px rgba(0,0,0,0.08);
+      --accent: #ff5c8a;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
+    body{background:var(--bg);color:#111;line-height:1.45;-webkit-font-smoothing:antialiased}
+    header{background:linear-gradient(90deg,var(--primary),#4a0f6f);color:#fff;padding:22px 18px;position:sticky;top:0;z-index:999}
+    header .wrap{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px}
+    header h1{font-size:1.25rem;letter-spacing:0.2px}
+    header nav a{color:rgba(255,255,255,0.95);margin-left:18px;font-weight:600;text-decoration:none}
+    .hero{max-width:1200px;margin:32px auto;padding:56px 20px;border-radius:16px;background:linear-gradient(180deg,#fff,#faf8ff);box-shadow:var(--shadow);display:grid;grid-template-columns:1fr 420px;gap:30px;align-items:center}
+    .hero-left h2{color:var(--primary);font-size:2.1rem;margin-bottom:12px}
+    .hero-left p{color:var(--muted);font-size:1.05rem;margin-bottom:18px}
+    .cta-row{display:flex;gap:12px;align-items:center}
+    .btn{background:var(--primary);color:#fff;padding:12px 18px;border-radius:10px;font-weight:700;border:none;cursor:pointer;box-shadow:0 10px 28px rgba(106,27,154,0.14)}
+    .btn.secondary{background:#fff;color:var(--primary);border:1px solid rgba(106,27,154,0.08)}
+    .hero-right{background:linear-gradient(135deg,#fff,#fcf7ff);border-radius:12px;padding:18px;box-shadow:0 8px 28px rgba(106,27,154,0.06)}
+    .small-note{font-size:0.9rem;color:var(--muted);margin-top:8px}
+    section{max-width:1200px;margin:36px auto;padding:0 20px}
+    h2.section-title{color:var(--primary);font-size:1.6rem;margin-bottom:18px;text-align:center}
+    .grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+    .card{background:var(--card);padding:20px;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid rgba(10,10,10,0.02)}
+    .card h3{color:var(--primary);font-size:1.05rem;margin-bottom:8px}
+    .card p{color:var(--muted);font-size:0.95rem}
+    .timeline{display:flex;flex-direction:column;gap:16px;max-width:900px;margin:0 auto}
+    .step{display:flex;gap:14px;align-items:flex-start}
+    .step .dot{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--primary),#8a3aa8);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+    .step .content h4{margin-bottom:6px;color:var(--primary);font-size:1rem}
+    .step .content p{color:var(--muted);font-size:0.95rem}
+    footer{background:#0f0f12;color:#ddd;padding:28px 20px;margin-top:40px;text-align:center}
+    @media(max-width:980px){
+      .hero{grid-template-columns:1fr;padding:28px}
+      header .wrap{flex-direction:column;gap:8px}
+    }
+    .muted{color:var(--muted);font-size:0.95rem}
+    .badge{display:inline-block;background:rgba(106,27,154,0.08);color:var(--primary);padding:6px 10px;border-radius:999px;font-weight:700;font-size:0.85rem}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>MedAssist AI</h1>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#flow">Flow</a>
+      <a href="#specialities">Specialities</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <div class="hero-left">
+      <h2>AI-Powered medical triage, appointment booking, and automated scheduling — all in one.</h2>
+      <p>
+        MedAssist uses **Anthropic Claude Opus 4.5 (via OpenRouter)** for symptom analysis,  
+        **Fast2SMS Quick SMS API** for OTP & confirmations, and **Calendly API** for real-time appointment scheduling & slot management.
+      </p>
+
+      <div class="cta-row">
+        <button class="btn" onclick="openChat()">Open Chatbot</button>
+        <button class="btn secondary" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">See Features</button>
+      </div>
+
+      <div class="small-note">
+        Patients can book, reschedule, cancel, or get reminders — all handled by the AI chatbot.
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <div class="muted">Quick highlights</div>
+      <ul style="margin-top:12px;list-style:none;padding-left:0;line-height:1.6;color:var(--muted)">
+        <li>• Claude Opus 4.5 for medical triage (via OpenRouter)</li>
+        <li>• Fast2SMS OTP + SMS confirmations</li>
+        <li>• Calendly for scheduling & slot control</li>
+        <li>• Full AI booking flow</li>
+        <li>• Reschedule / Cancel anytime</li>
+        <li>• Voice + multilingual chatbot</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <h2 class="section-title">Features & Capabilities</h2>
+    <div class="grid">
+
+      <div class="card">
+        <h3>AI–Driven Symptom Analysis (Claude Opus 4.5)</h3>
+        <p>Our chatbot uses Anthropic Claude Opus 4.5 via OpenRouter to analyse symptoms, classify urgency, and recommend the correct speciality.</p>
+      </div>
+
+      <div class="card">
+        <h3>OTP Verification (Fast2SMS)</h3>
+        <p>Patient enters phone number → OTP sent through Fast2SMS Quick SMS API → verification ensures secure booking.</p>
+      </div>
+
+      <div class="card">
+        <h3>Calendly Slot Scheduling</h3>
+        <p>Real-time slot availability, instant appointment creation, and automatic updates handled using Calendly APIs.</p>
+      </div>
+
+      <div class="card">
+        <h3>Booking, Reschedule & Cancel</h3>
+        <p>
+          Patients can book, move, or cancel slots.  
+          The chatbot interacts with Calendly to update schedules instantly.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>SMS Confirmations</h3>
+        <p>Fast2SMS sends booking confirmations, updates, and reminders automatically.</p>
+      </div>
+
+      <div class="card">
+        <h3>Complete Patient Summary</h3>
+        <p>All details — name, phone, email, age, symptoms, doctor, slot time — shown in chat and sent via SMS.</p>
+      </div>
+
+      <div class="card">
+        <h3>Voice + Multilingual Chatbot</h3>
+        <p>Supports English plus local language, and allows voice input for faster booking.</p>
+      </div>
+
+      <div class="card">
+        <h3>Operator Support (Optional)</h3>
+        <p>Operators can review patient context, manage bookings, and assist manually if needed.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FLOW -->
+  <section id="flow">
+    <h2 class="section-title">Complete Flow (Step-by-Step)</h2>
+    <div class="timeline">
+
+      <div class="step card">
+        <div class="dot">1</div>
+        <div class="content">
+          <h4>User opens chatbot</h4>
+          <p>AI collects name, phone, email → sends OTP via Fast2SMS → verifies identity.</p>
+        </div>
+      </div>
+
+      <div class="step card">
+        <div class="dot">2</div>
+        <div class="content">
+          <h4>Symptom / Speciality Input</h4>
+          <p>Claude Opus 4.5 analyses symptoms and chooses the right medical speciality.</p>
+        </div>
+      </div>
+
+      <div class="step card">
+        <div class="dot">3</div>
+        <div class="content">
+          <h4>Show slots</h4>
+          <p>Bot fetches real-time slot availability from Calendly API and displays options.</p>
+        </div>
+      </div>
+
+      <div class="step card">
+        <div class="dot">4</div>
+        <div class="content">
+          <h4>Book Appointment</h4>
+          <p>Slot confirmed → Calendly booking created → SMS confirmation sent instantly.</p>
+        </div>
+      </div>
+
+      <div class="step card">
+        <div class="dot">5</div>
+        <div class="content">
+          <h4>Reschedule & Cancel</h4>
+          <p>Patients can shift or cancel bookings any time via chatbot commands.</p>
+        </div>
+      </div>
+
+      <div class="step card">
+        <div class="dot">6</div>
+        <div class="content">
+          <h4>Reminder Messages</h4>
+          <p>Fast2SMS sends automated reminder SMS before appointment time.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SPECIALITIES -->
+  <section id="specialities">
+    <h2 class="section-title">Specialities Covered</h2>
+    <div class="grid">
+      <div class="card"><h3>General Medicine</h3><p class="muted">Fever, cold, cough</p></div>
+      <div class="card"><h3>Dental</h3><p class="muted">Tooth pain & cleaning</p></div>
+      <div class="card"><h3>Dermatology</h3><p class="muted">Skin & hair issues</p></div>
+      <div class="card"><h3>Cardiology</h3><p class="muted">Chest discomfort</p></div>
+      <div class="card"><h3>Pediatrics</h3><p class="muted">Child health</p></div>
+      <div class="card"><h3>Orthopaedics</h3><p class="muted">Joint & bone issues</p></div>
+      <div class="card"><h3>20+ Other Specialities</h3><p class="muted">AI routes automatically</p></div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <h2 class="section-title">medassist.ai1@gmail.com</h2>
+    <div class="card" style="max-width:900px;margin:0 auto;text-align:center">
+      <p class="muted">For integration or deployment support:</p>
+      <p style="margin-top:14px;font-weight:700">Email: <a href="mailto:medassist.ai1@gmail.com">medassist.ai1@gmail.com</a> • Phone: +91-8637499280</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div style="max-width:1200px;margin:0 auto;padding:10px 20px">
+    <div style="margin-bottom:8px">© 2025 MedAssist AI — Built for Zoho Cliqtrix</div>
+    <div style="font-size:0.9rem;color:#bbb">Integrated with OpenRouter, Fast2SMS and Calendly APIs.</div>
+  </div>
+</footer>
+
+<!-- SalesIQ widget -->
+<script>
+  window.$zoho = window.$zoho || {};
+  $zoho.salesiq = $zoho.salesiq || { ready:function(){} };
+</script>
+
+<script 
+  id="zsiqscript" 
+  src="https://salesiq.zohopublic.in/widget?wc=siqbeaf9cd701148bd897416c499e924be72b4aa942c2e7e6f99363c5f31a9fa75c" 
+  defer>
+</script>
+
+<script>
+  function openChat(){
+    if(window.$zoho && $zoho.salesiq && $zoho.salesiq.openChat)
+      $zoho.salesiq.openChat();
+    else alert("Chat widget loading... please try again.");
+  }
+</script>
+
+</body>
+</html>
