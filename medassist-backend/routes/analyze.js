@@ -1,13 +1,13 @@
+// routes/analyze.js
 import express from "express";
-import routerAI from "./ai.js";  // import the AI router (default export)
-import fetch from "node-fetch";   // required for callAI
+import fetch from "node-fetch";
 import dotenv from "dotenv";
 dotenv.config();
 
 const router = express.Router();
 
 // -----------------------------
-// Utility function to call AI (from ai.js logic)
+// callAI utility
 // -----------------------------
 async function callAI(prompt, max_tokens = 300) {
   if (!process.env.OPENROUTER_API_KEY) {
@@ -28,12 +28,26 @@ async function callAI(prompt, max_tokens = 300) {
   });
 
   const data = await response.json();
-  const raw = data?.choices?.[0]?.message?.content || data?.completion || "{}";
+  console.log("Raw AI response:", JSON.stringify(data, null, 2));
 
+  // Try multiple possible paths
+  const raw = data?.choices?.[0]?.message?.content || data?.completion || "";
+
+  if (!raw) throw new Error("Empty AI response");
+
+  // Try parse JSON, fallback to default template if fails
   try {
     return JSON.parse(raw);
   } catch (err) {
-    throw new Error(`Invalid AI JSON: ${raw}`);
+    console.warn("AI returned invalid JSON, using fallback template.");
+    return {
+      specialty: "General Physician",
+      severity: "MED",
+      follow_up_days: 3,
+      medication_advice: "",
+      health_tips: "",
+      notes: raw
+    };
   }
 }
 
@@ -73,8 +87,12 @@ Return JSON:
   } catch (err) {
     console.error("Analyze error:", err);
     return res.status(500).json({
-      error: "AI_JSON_ERROR",
-      message: "AI returned invalid JSON"
+      specialty: "General Physician",
+      severity: "MED",
+      follow_up_days: 3,
+      medication_advice: "",
+      health_tips: "",
+      notes: "AI service error, using fallback template"
     });
   }
 });
