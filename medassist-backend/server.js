@@ -4,6 +4,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import pool from "./db.js"; // make sure the path is correct
 dotenv.config();
 
 import cron from "node-cron";
@@ -112,6 +113,18 @@ cron.schedule("0 7 1 * *", () => {
   runMonthlyReport().catch(console.error);
 });
 
+// =========================
+//      TEST DATABASE ROUTE
+// =========================
+app.get("/api/test-db", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT NOW()");
+    res.json({ success: true, time: result.rows[0].now });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 // =========================
 //      START SERVER
