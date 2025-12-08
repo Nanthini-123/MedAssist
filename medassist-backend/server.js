@@ -127,7 +127,7 @@ app.post("/send-otp", async (req, res) => {
     if (!phone) return res.status(400).json({ error: "Phone number required" });
 
     const apiKey = process.env.TWOFACTOR_API_KEY;
-    const url = `https://2factor.in/API/V1/${apiKey}/SMS/${phone}/AUTOGEN`;
+    const url = `https://2factor.in/API/V1/${apiKey}/SMS/${phone}/AUTOGEN2`;
 
     const response = await axios.get(url);
 
