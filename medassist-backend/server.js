@@ -124,6 +124,27 @@ cron.schedule("0 7 1 * *", () => {
   runMonthlyReport().catch(console.error);
 });
 
+app.post("/send-otp", async (req, res) => {
+  try {
+    const { phone } = req.body;
+    if (!phone) return res.status(400).json({ error: "Phone number required" });
+
+    const apiKey = process.env.TWOFACTOR_API_KEY;
+    const url = `https://2factor.in/API/V1/${apiKey}/SMS/${phone}/AUTOGEN`;
+
+    const response = await axios.get(url);
+
+    res.json({
+      success: true,
+      message: "OTP sent via 2factor.in",
+      data: response.data
+    });
+  } catch (err) {
+    console.error("OTP SEND ERROR:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // =========================
 //      TEST DATABASE ROUTE
 // =========================
