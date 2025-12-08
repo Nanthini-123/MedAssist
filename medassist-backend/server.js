@@ -5,6 +5,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import pool from "./db.js"; // make sure the path is correct
+import axios from "axios";
 dotenv.config();
 
 import cron from "node-cron";
