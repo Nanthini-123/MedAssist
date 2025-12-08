@@ -124,9 +124,9 @@ cron.schedule("0 7 1 * *", () => {
 app.post("/send-otp", async (req, res) => {
   try {
     // Accept phone from either JSON or form
-    const phone = req.body.phone || req.body["visitor.phone"];
+    let phone = req.body.phone || req.body["visitor.phone"];
     if (!phone) return res.status(400).json({ error: "Phone number required" });
-    phone = String(phone).replace(/[^\d]/g, "");
+    phone = phone.replace("+", "");
     const apiKey = process.env.TWOFACTOR_API_KEY;
     const url = `https://2factor.in/API/V1/${apiKey}/SMS/${phone}/AUTOGEN2`;
 
