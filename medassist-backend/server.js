@@ -142,10 +142,13 @@ app.post("/send-otp", async (req, res) => {
     res.json({ success: true, data: response.data });
 
   } catch (err) {
-    console.error("Error:", err);
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
+  console.error("OTP SEND ERROR:", err.response?.data || err.message);
+
+  res.status(500).json({
+    success: false,
+    error: err.response?.data || err.message,
+  });
+}
 app.post("/verify-otp", async (req, res) => {
   try {
     const sessionId = req.body.sessionId || req.body["visitor.sessionId"];
