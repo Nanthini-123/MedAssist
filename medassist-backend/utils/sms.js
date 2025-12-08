@@ -1,36 +1,22 @@
+// utils/sms.js
 import axios from "axios";
 
-/**
- * Send SMS via Fast2SMS Quick SMS
- * @param {string} phone - Recipient number with country code (e.g., 918637499280)
- * @param {string} message - Message text
- */
-export const sendSms = async (phone, message) => {
+export async function sendSms({ phone, otp }) {
   try {
-    const response = await axios.post(
-      "https://www.fast2sms.com/dev/bulkV2",
-      {
-        route: "q",
-        message: message,
-        numbers: phone,
-        flash: 0,
-        schedule_time: ""
-      },
-      {
-        headers: {
-          authorization: process.env.FAST2SMS_API_KEY,
-          "Content-Type": "application/json"
-        }
-      }
-    );
+    // 2factor API key from env
+    const apiKey = process.env.TWOFACTOR_API_KEY;
 
-    if (!response.data.return) {
-      throw new Error(response.data.message || "Fast2SMS rejected request");
-    }
+    // 2factor endpoint for SMS OTP
+    // AUTOGEN lets 2factor generate OTP automatically
+    const url = `https://2factor.in/API/V1/${apiKey}/SMS/${phone}/AUTOGEN`;
 
+    // Send GET request
+    const response = await axios.get(url);
+
+    console.log("OTP sent via 2factor.in:", response.data);
     return response.data;
   } catch (err) {
-    console.error("Fast2SMS error:", err.response?.data || err.message);
-    throw new Error("Failed to send SMS");
+    console.error("SEND SMS ERROR:", err.message);
+    throw err;
   }
-};
+}
