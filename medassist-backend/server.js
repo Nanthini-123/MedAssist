@@ -126,9 +126,9 @@ app.post("/send-otp", async (req, res) => {
     // Accept phone from either JSON or form
     const phone = req.body.phone || req.body["visitor.phone"];
     if (!phone) return res.status(400).json({ error: "Phone number required" });
-
+    phone = String(phone).replace(/[^\d]/g, "");
     const apiKey = process.env.TWOFACTOR_API_KEY;
-    const url = `https://2factor.in/API/V1/${apiKey}/SMS/${phone}/AUTOGEN`;
+    const url = `https://2factor.in/API/V1/${apiKey}/SMS/${phone}/AUTOGEN2`;
 
     const response = await axios.get(url);
 
@@ -149,6 +149,7 @@ app.post("/verify-otp", async (req, res) => {
     const sessionId = req.body.sessionId || req.body["visitor.sessionId"];
     const otp = req.body.otp || req.body["visitor.otp"];
     if (!sessionId || !otp) return res.status(400).json({ error: "Session ID and OTP required" });
+    otp = String(otp).replace(/[^\d]/g, "");
 
     const apiKey = process.env.TWOFACTOR_API_KEY;
     const url = `https://2factor.in/API/V1/${apiKey}/SMS/VERIFY/${sessionId}/${otp}`;
