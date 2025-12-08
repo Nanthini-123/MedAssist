@@ -136,7 +136,7 @@ app.post("/send-otp", async (req, res) => {
 
     // now continue your OTP sending logic...
     const response = await axios.get(
-      `https://2factor.in/API/V1/${process.env.OTP_API}/SMS/${phone}/AUTOGEN2`
+      `https://2factor.in/API/V1/${process.env.TWOFACTOR_API_KEY}/SMS/${phone}/AUTOGEN2`
     );
 
     res.json({ success: true, data: response.data });
