@@ -6,7 +6,8 @@ dotenv.config();
 const router = express.Router();
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-const otpStore = {}; // In-memory store
+// In-memory OTP store (replace with DB for production)
+const otpStore = {};
 
 // Generate random 6-digit OTP
 const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
@@ -15,25 +16,23 @@ const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString()
 router.post("/send", async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email) return res.status(400).json({ success: false, error: "Email is required" });
+    if (!email) return res.status(400).json({ success: false, error: "Email required" });
 
     const otp = generateOtp();
     const expiresAt = new Date(Date.now() + (process.env.OTP_EXPIRY_MINUTES || 5) * 60000);
     otpStore[email] = { otp, expiresAt };
 
-    const msg = {
+    // Send email via SendGrid
+    await sgMail.send({
       to: email,
-      from: { 
-        email: process.env.SENDGRID_FROM_EMAIL, 
-        name: process.env.SENDGRID_FROM_NAME 
-      },
+      from: { email: process.env.SENDGRID_FROM_EMAIL, name: process.env.SENDGRID_FROM_NAME },
       subject: "Your MedAssist OTP",
       text: `Your OTP is: ${otp}. It will expire in ${process.env.OTP_EXPIRY_MINUTES || 5} minutes.`,
-    };
+      html: `<p>Your OTP is: <b>${otp}</b></p><p>It will expire in ${process.env.OTP_EXPIRY_MINUTES || 5} minutes.</p>`
+    });
 
-    await sgMail.send(msg);
-
-    res.json({ success: true, message: "OTP sent successfully" });
+    // Return OTP for SalesIQ Plug output
+    res.json({ otp });
 
   } catch (err) {
     console.error("SEND OTP ERROR:", err.response ? err.response.body : err);
@@ -45,7 +44,7 @@ router.post("/send", async (req, res) => {
 router.post("/verify", (req, res) => {
   try {
     const { email, otp } = req.body;
-    if (!email || !otp) return res.status(400).json({ success: false, error: "Email and OTP are required" });
+    if (!email || !otp) return res.status(400).json({ success: false, error: "Email and OTP required" });
 
     const record = otpStore[email];
     if (!record) return res.status(400).json({ success: false, error: "No OTP found for this email" });
