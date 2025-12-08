@@ -18,31 +18,29 @@ const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString()
 router.post("/send", async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email) return res.status(400).json({ success: false, error: "Email required" });
+    if (!email) return res.status(400).json({ error: "Email required" });
 
-    // Generate OTP and expiration
     const otp = generateOtp();
-    const expiresAt = new Date(Date.now() + (Number(process.env.OTP_EXPIRY_MINUTES) || 5) * 60000);
+    const expiresAt = new Date(Date.now() + (process.env.OTP_EXPIRY_MINUTES || 5) * 60000);
     otpStore[email] = { otp, expiresAt };
 
-    // Send email via SendGrid
+    // Send OTP via SendGrid
     await sgMail.send({
       to: email,
       from: {
         email: process.env.SENDGRID_FROM_EMAIL,
-        name: process.env.SENDGRID_FROM_NAME || "MedAssist"
+        name: process.env.SENDGRID_FROM_NAME,
       },
       subject: "Your MedAssist OTP",
-      text: `Your OTP is: ${otp}. It will expire in ${Number(process.env.OTP_EXPIRY_MINUTES) || 5} minutes.`,
-      html: `<p>Your OTP is: <b>${otp}</b></p><p>It will expire in ${Number(process.env.OTP_EXPIRY_MINUTES) || 5} minutes.</p>`
+      text: `Your OTP is: ${otp}. It will expire in ${process.env.OTP_EXPIRY_MINUTES || 5} minutes.`,
     });
 
-    // Return OTP for testing / Zoho SalesIQ Plug output
-    res.json({ success: true, otp });
+    // 🔑 This is crucial for SalesIQ plug output
+    res.json({ otp }); // key name must match the plug output parameter
 
   } catch (err) {
     console.error("SEND OTP ERROR:", err.response ? err.response.body : err);
-    res.status(500).json({ success: false, error: err.response ? err.response.body : err.message });
+    res.status(500).json({ error: "Failed to send OTP" });
   }
 });
 
