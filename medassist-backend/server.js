@@ -123,15 +123,17 @@ cron.schedule("0 7 1 * *", () => {
 
 app.post("/send-otp", async (req, res) => {
   try {
-    const { phone } = req.body;
+    // Accept phone from either JSON or form
+    const phone = req.body.phone || req.body["visitor.phone"];
     if (!phone) return res.status(400).json({ error: "Phone number required" });
 
     const apiKey = process.env.TWOFACTOR_API_KEY;
-    const url = `https://2factor.in/API/V1/${apiKey}/SMS/${phone}/AUTOGEN2`;
+    const url = `https://2factor.in/API/V1/${apiKey}/SMS/${phone}/AUTOGEN`;
 
     const response = await axios.get(url);
 
-    res.json({
+    // Return sessionId so you can verify OTP later
+    return res.json({
       success: true,
       message: "OTP sent via 2factor.in",
       data: response.data
@@ -141,11 +143,12 @@ app.post("/send-otp", async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
 app.post("/verify-otp", async (req, res) => {
   try {
-    const { sessionId, otp } = req.body;
-    if (!sessionId || !otp)
-      return res.status(400).json({ error: "Session ID and OTP required" });
+    const sessionId = req.body.sessionId || req.body["visitor.sessionId"];
+    const otp = req.body.otp || req.body["visitor.otp"];
+    if (!sessionId || !otp) return res.status(400).json({ error: "Session ID and OTP required" });
 
     const apiKey = process.env.TWOFACTOR_API_KEY;
     const url = `https://2factor.in/API/V1/${apiKey}/SMS/VERIFY/${sessionId}/${otp}`;
@@ -155,14 +158,11 @@ app.post("/verify-otp", async (req, res) => {
     res.json({
       success: true,
       message: "OTP verification result",
-      data: response.data,
+      data: response.data
     });
   } catch (err) {
-    console.error("OTP VERIFY ERROR:", err.response?.data || err.message);
-    res.status(500).json({
-      success: false,
-      error: err.response?.data || err.message,
-    });
+    console.error("OTP VERIFY ERROR:", err.message);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 // =========================
