@@ -123,27 +123,29 @@ cron.schedule("0 7 1 * *", () => {
 
 app.post("/send-otp", async (req, res) => {
   try {
-    // Accept phone from either JSON or form
-    let phone = req.body.phone || req.body["visitor.phone"];
-    if (!phone) return res.status(400).json({ error: "Phone number required" });
-    phone = phone.replace("+", "");
-    const apiKey = process.env.TWOFACTOR_API_KEY;
-    const url = `https://2factor.in/API/V1/${apiKey}/SMS/${phone}/AUTOGEN2`;
+    let { phone } = req.body;
 
-    const response = await axios.get(url);
+    if (!phone) {
+      return res.status(400).json({ success: false, error: "Phone required" });
+    }
 
-    // Return sessionId so you can verify OTP later
-    return res.json({
-      success: true,
-      message: "OTP sent via 2factor.in",
-      data: response.data
-    });
+    // 🔥 FIX: Remove all kinds of spaces
+    phone = phone.replace(/\s+/g, "");
+
+    console.log("Cleaned Phone:", phone);
+
+    // now continue your OTP sending logic...
+    const response = await axios.get(
+      `https://2factor.in/API/V1/${process.env.OTP_API}/SMS/${phone}/AUTOGEN2`
+    );
+
+    res.json({ success: true, data: response.data });
+
   } catch (err) {
-    console.error("OTP SEND ERROR:", err.message);
+    console.error("Error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
-
 app.post("/verify-otp", async (req, res) => {
   try {
     const sessionId = req.body.sessionId || req.body["visitor.sessionId"];
