@@ -1,3 +1,6 @@
+
+import express from "express";
+const router = express.Router();
 router.post("/get", (req, res) => {
   const phone = req.body.phone;
   const booking = latestBooking[phone];
@@ -42,3 +45,4 @@ router.post("/cancel", async (req, res) => {
     res.status(500).json({ error: "Cancel failed" });
   }
 });
+export default router;

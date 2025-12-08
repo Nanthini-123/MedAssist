@@ -17,13 +17,11 @@ app.use(express.json({ limit: "20mb" }));
 // =========================
 //        ROUTES
 // =========================
-import otpRoutes from "./routes/otp.js";
 import analyzeRoutes from "./routes/analyze.js";
 import availabilityRoutes from "./routes/availability.js";
 import bookingRoutes from "./routes/booking.js";
 import visitorRoutes from "./routes/visitor.js";
 import slotsRouter from "./routes/slots.js";
-import otpRouter from "./routes/otp.js";
 import calendlyRouter from "./routes/calendly.js";
 
 import operatorRoutes from "./routes/operator.js";
@@ -42,7 +40,7 @@ import botRoutes from "./routes/bot.js";
 import testRoutes from "./routes/test.js";
 import aiRoutes from "./routes/ai.js"; // make sure path is correct
 import calendlyWebhook from "./routes/calendly/webhook.js";
-import bookingRoutes from "./routes/booking/get.js";
+import bookinggetRoutes from "./routes/booking/get.js";
 
 
 // =========================
@@ -63,13 +61,11 @@ import { sendDailySummary } from "./cron/dailySummary.js";
 // =========================
 //      MOUNT ROUTES
 // =========================
-app.use("/api/otp", otpRoutes);
 app.use("/api/ai", analyzeRoutes);
 app.use("/api/availability", availabilityRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/visitors", visitorRoutes);
 app.use("/api/slots", slotsRouter);
-app.use("/api/otp", otpRouter);
 app.use("/api/calendly", calendlyRouter);
 
 
