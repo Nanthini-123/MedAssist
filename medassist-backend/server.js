@@ -141,7 +141,30 @@ app.post("/send-otp", async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+app.post("/verify-otp", async (req, res) => {
+  try {
+    const { sessionId, otp } = req.body;
+    if (!sessionId || !otp)
+      return res.status(400).json({ error: "Session ID and OTP required" });
 
+    const apiKey = process.env.TWOFACTOR_API_KEY;
+    const url = `https://2factor.in/API/V1/${apiKey}/SMS/VERIFY/${sessionId}/${otp}`;
+
+    const response = await axios.get(url);
+
+    res.json({
+      success: true,
+      message: "OTP verification result",
+      data: response.data,
+    });
+  } catch (err) {
+    console.error("OTP VERIFY ERROR:", err.response?.data || err.message);
+    res.status(500).json({
+      success: false,
+      error: err.response?.data || err.message,
+    });
+  }
+});
 // =========================
 //      TEST DATABASE ROUTE
 // =========================
