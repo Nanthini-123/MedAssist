@@ -94,49 +94,6 @@ app.get("/", (req, res) => res.send("MedAssist backend running"));
 
 
 // =========================
-//     START WORKERS
-// =========================
-
-
-// Run lightweight workers every minute
-setInterval(() => { runReminderWorker().catch(console.error); }, 60000);
-setInterval(() => { runMissedWorker().catch(console.error); }, 60000);
-setInterval(() => { runFollowupWorker().catch(console.error); }, 60000);
-
-// No-show followups every 10 minutes
-cron.schedule("*/10 * * * *", () => {
-  runNoShowFollowup().catch(console.error);
-});
-
-// Auto-cancel at midnight
-cron.schedule("0 0 * * *", () => {
-  autoCancelNoShow().catch(console.error);
-});
-
-// Daily summary at 7AM
-cron.schedule("0 7 * * *", () => {
-  sendDailySummary().catch(console.error);
-});
-
-// Monthly report on 1st at 7AM
-cron.schedule("0 7 1 * *", () => {
-  runMonthlyReport().catch(console.error);
-});
-
-// =========================
-//      TEST DATABASE ROUTE
-// =========================
-app.get("/api/test-db", async (req, res) => {
-  try {
-    const result = await pool.query("SELECT NOW()");
-    res.json({ success: true, time: result.rows[0].now });
-  } catch (err) {
-    console.error("DB CONNECTION ERROR:", err);
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// =========================
 //      START SERVER
 // =========================
 const PORT = process.env.PORT || 10000;
